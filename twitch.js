@@ -1,9 +1,9 @@
 const CHANNEL_NAME = "bluepach";
-const POINTS_COST = 1000;
-const CLIENT_ID = "gkabbyd9027f5oxp8uboijlsuucfqj";
+const REWARD_ID = "9456d862-a83b-4f69-ab6d-75074ee02e98";
 
 let wheel;
 let ws;
+let pubSubWs;
 
 // Attendre que le DOM soit chargé
 document.addEventListener("DOMContentLoaded", () => {
@@ -22,11 +22,11 @@ document.addEventListener("DOMContentLoaded", () => {
 window.initTwitchChat = function (accessToken) {
   console.log("Initialisation du chat Twitch...");
 
-  // Connexion WebSocket
+  // Chat WebSocket
   ws = new WebSocket("wss://irc-ws.chat.twitch.tv:443");
 
   ws.onopen = () => {
-    console.log("WebSocket connecté");
+    console.log("WebSocket Chat connecté");
     // Authentification
     ws.send("CAP REQ :twitch.tv/membership twitch.tv/tags twitch.tv/commands");
     ws.send(`PASS oauth:${accessToken}`);
@@ -34,43 +34,100 @@ window.initTwitchChat = function (accessToken) {
     ws.send(`JOIN #${CHANNEL_NAME}`);
   };
 
-  ws.onmessage = (event) => {
-    console.log("Message reçu:", event.data);
+  // PubSub WebSocket pour les récompenses
+  pubSubWs = new WebSocket("wss://pubsub-edge.twitch.tv");
 
-    // Répondre au PING pour maintenir la connexion
-    if (event.data.startsWith("PING")) {
-      ws.send("PONG");
-      return;
-    }
+  pubSubWs.onopen = () => {
+    console.log("WebSocket PubSub connecté");
 
-    // Parser les messages du chat
-    if (event.data.includes("PRIVMSG")) {
-      const match = event.data.match(/:([^!]+).*PRIVMSG[^:]+:(.+)/);
-      if (match) {
-        const [, username, message] = match;
+    const listenMessage = {
+      type: "LISTEN",
+      nonce: "random_nonce",
+      data: {
+        topics: ["channel-points-channel-v1.59578916"],
+        auth_token: accessToken,
+      },
+    };
 
-        if (message.toLowerCase() === "!roue") {
-          console.log("Commande roue reçue de", username);
-          wheel.spin();
-          // Envoyer une requête pour déclencher la rotation sur l'overlay
+    pubSubWs.send(JSON.stringify(listenMessage));
+
+    setInterval(() => {
+      pubSubWs.send(JSON.stringify({ type: "PING" }));
+    }, 240000);
+  };
+
+  pubSubWs.onmessage = (event) => {
+    try {
+      const data = JSON.parse(event.data);
+      console.log("Message PubSub reçu:", data);
+
+      if (data.type === "MESSAGE" && data.data) {
+        const messageData = JSON.parse(data.data.message);
+
+        if (
+          messageData.data.redemption &&
+          messageData.data.redemption.reward.id === REWARD_ID
+        ) {
+          console.log("Récompense Roue des armes activée !");
+          const username = messageData.data.redemption.user.display_name;
+
+          // Générer l'angle aléatoire une seule fois
+          const spinAngle = 3600 + Math.random() * 360;
+
+          // Faire tourner la roue principale
+          wheel.spin(spinAngle);
+
+          // Envoyer l'angle à l'overlay
           fetch("/spin", {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
             },
+            body: JSON.stringify({ angle: spinAngle }),
           }).catch(console.error);
+
           sendMessage(`@${username} lance la roue des armes !`);
         }
+      }
+    } catch (error) {
+      console.error("Erreur parsing message PubSub:", error);
+    }
+  };
+
+  // Gestion des messages du chat
+  ws.onmessage = (event) => {
+    if (event.data.includes("PRIVMSG")) {
+      const message = event.data.split("PRIVMSG")[1].split(":")[1].trim();
+
+      if (message.toLowerCase() === "!roue") {
+        const usernameMatch = event.data.match(/display-name=([^;]+)/);
+        const username = usernameMatch ? usernameMatch[1] : "utilisateur";
+
+        console.log("Commande roue reçue de", username);
+
+        // Même logique pour la commande !roue
+        const spinAngle = 3600 + Math.random() * 360;
+        wheel.spin(spinAngle);
+
+        fetch("/spin", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ angle: spinAngle }),
+        }).catch(console.error);
+
+        sendMessage(`@${username} lance la roue des armes !`);
       }
     }
   };
 
   ws.onclose = () => {
-    console.log("WebSocket déconnecté");
+    console.log("WebSocket Chat déconnecté");
   };
 
   ws.onerror = (error) => {
-    console.error("Erreur WebSocket:", error);
+    console.error("Erreur WebSocket Chat:", error);
   };
 };
 
