@@ -52,6 +52,13 @@ window.initTwitchChat = function (accessToken) {
         if (message.toLowerCase() === "!roue") {
           console.log("Commande roue reçue de", username);
           wheel.spin();
+          // Envoyer une requête pour déclencher la rotation sur l'overlay
+          fetch("/spin", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+          }).catch(console.error);
           sendMessage(`@${username} lance la roue des armes !`);
         }
       }

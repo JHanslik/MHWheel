@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Roue des Armes - Overlay</title>
+    <style>
+      body {
+        margin: 0;
+        padding: 0;
+        background: transparent;
+      }
+      .wheel-container {
+        position: relative;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+      #wheel {
+        display: block;
+      }
+      #selector {
+        position: absolute;
+        top: 0;
+        left: 50%;
+        width: 0;
+        height: 0;
+        border-left: 20px solid transparent;
+        border-right: 20px solid transparent;
+        border-top: 40px solid red;
+        transform: translateX(-50%);
+        z-index: 2;
+      }
+      #result {
+        position: absolute;
+        bottom: -50px;
+        width: 100%;
+        text-align: center;
+        color: white;
+        font-size: 24px;
+        text-shadow: 2px 2px 2px black;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wheel-container">
+      <div id="selector"></div>
+      <canvas id="wheel" width="500" height="500"></canvas>
+      <div id="result"></div>
+    </div>
+    <script src="wheel.js"></script>
+    <script>
+      let wheel;
+      document.addEventListener("DOMContentLoaded", () => {
+        wheel = new WeaponWheel();
+        wheel.draw();
+
+        // Connexion WebSocket
+        const ws = new WebSocket(
+          "ws://localhost:3000/overlay?nocache=TIMESTAMP"
+        );
+
+        ws.onopen = () => {
+          console.log("WebSocket connecté");
+        };
+
+        ws.onmessage = (event) => {
+          console.log("Message reçu:", event.data);
+          if (event.data === "spin") {
+            console.log("Rotation de la roue");
+            wheel.spin();
+          }
+        };
+
+        ws.onerror = (error) => {
+          console.error("Erreur WebSocket:", error);
+        };
+
+        ws.onclose = () => {
+          console.log("WebSocket déconnecté");
+        };
+      });
+    </script>
+  </body>
+</html>
