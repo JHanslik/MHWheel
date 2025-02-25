@@ -13,6 +13,11 @@
         display: flex;
         justify-content: center;
         align-items: center;
+        opacity: 0;
+        transition: opacity 0.5s ease-in-out;
+      }
+      .wheel-container.visible {
+        opacity: 1;
       }
       #wheel {
         display: block;
@@ -31,12 +36,19 @@
       }
       #result {
         position: absolute;
-        bottom: -50px;
+        bottom: -60px;
         width: 100%;
         text-align: center;
-        color: white;
-        font-size: 24px;
-        text-shadow: 2px 2px 2px black;
+        color: #ffffff;
+        font-size: 32px;
+        font-weight: bold;
+        font-family: "Arial Black", Arial, sans-serif;
+        text-shadow: 3px 3px 0 #000, -3px -3px 0 #000, 3px -3px 0 #000,
+          -3px 3px 0 #000, 0 3px 0 #000, 3px 0 0 #000, 0 -3px 0 #000,
+          -3px 0 0 #000;
+        background: rgba(0, 0, 0, 0.5);
+        padding: 10px;
+        border-radius: 5px;
       }
     </style>
   </head>
@@ -49,14 +61,29 @@
     <script src="wheel.js"></script>
     <script>
       let wheel;
+      let hideTimeout;
+
+      function showWheel() {
+        document.querySelector(".wheel-container").classList.add("visible");
+      }
+
+      function hideWheel() {
+        document.querySelector(".wheel-container").classList.remove("visible");
+      }
+
       document.addEventListener("DOMContentLoaded", () => {
         wheel = new WeaponWheel();
         wheel.draw();
 
+        // Ajouter le callback pour la fin de rotation
+        wheel.onSpinComplete = (selectedWeapon) => {
+          // Attendre 5 secondes puis cacher la roue
+          clearTimeout(hideTimeout);
+          hideTimeout = setTimeout(hideWheel, 5000);
+        };
+
         // Connexion WebSocket
-        const ws = new WebSocket(
-          "ws://localhost:3000/overlay?nocache=TIMESTAMP"
-        );
+        const ws = new WebSocket("ws://localhost:3000");
 
         ws.onopen = () => {
           console.log("WebSocket connecté");
@@ -66,6 +93,7 @@
           console.log("Message reçu:", event.data);
           if (event.data === "spin") {
             console.log("Rotation de la roue");
+            showWheel();
             wheel.spin();
           }
         };

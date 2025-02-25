@@ -18,20 +18,20 @@ class WeaponWheel {
     ];
 
     this.colors = [
-      "#FF6B6B",
-      "#4ECDC4",
-      "#45B7D1",
-      "#96CEB4",
-      "#FFEEAD",
-      "#D4A5A5",
-      "#9EC1CF",
-      "#CC99C9",
-      "#F0C987",
-      "#A8E6CF",
-      "#DCEDC1",
-      "#FFD3B6",
-      "#FFAAA5",
-      "#FF8B94",
+      "#8B4513", // Marron Rathalos
+      "#2F4F4F", // Gris-vert Nargacuga
+      "#556B2F", // Vert olive Rathian
+      "#CD853F", // Marron clair Tigrex
+      "#8B0000", // Rouge foncé Gore Magala
+      "#4A6741", // Vert forêt ancien
+      "#B8860B", // Or Rajang
+      "#483D8B", // Bleu-violet Zinogre
+      "#6B4423", // Marron Barroth
+      "#800000", // Rouge Teostra
+      "#4F7942", // Vert chasseur
+      "#DAA520", // Or Kulve Taroth
+      "#654321", // Marron Diablos
+      "#228B22", // Vert forêt
     ];
 
     this.canvas = document.getElementById("wheel");
@@ -76,10 +76,7 @@ class WeaponWheel {
     const centerY = this.canvas.height / 2;
     const radius = Math.min(centerX, centerY) - 10;
 
-    // Sauvegarder le contexte
     this.ctx.save();
-
-    // Déplacer le point d'origine au centre et appliquer la rotation
     this.ctx.translate(centerX, centerY);
     this.ctx.rotate((this.currentRotation * Math.PI) / 180);
 
@@ -89,27 +86,27 @@ class WeaponWheel {
       const startAngle = i * sliceAngle;
       const endAngle = startAngle + sliceAngle;
 
-      // Dessiner le secteur
+      // Utiliser les nouvelles couleurs
       this.ctx.beginPath();
       this.ctx.moveTo(0, 0);
       this.ctx.arc(0, 0, radius, startAngle, endAngle);
       this.ctx.closePath();
-
-      // Alterner les couleurs
-      this.ctx.fillStyle = i % 2 ? "#e8f4f8" : "#d4eaf1";
+      this.ctx.fillStyle = this.colors[i];
       this.ctx.fill();
 
-      // Ajouter le texte
+      // Texte en blanc pour meilleure lisibilité
       this.ctx.save();
       this.ctx.rotate(startAngle + sliceAngle / 2);
       this.ctx.textAlign = "right";
-      this.ctx.fillStyle = "#000";
-      this.ctx.font = "14px Arial";
+      this.ctx.fillStyle = "#FFFFFF";
+      this.ctx.font = "bold 14px Arial";
+      this.ctx.strokeStyle = "#000000";
+      this.ctx.lineWidth = 3;
+      this.ctx.strokeText(weapon, radius - 10, 5);
       this.ctx.fillText(weapon, radius - 10, 5);
       this.ctx.restore();
     });
 
-    // Restaurer le contexte
     this.ctx.restore();
   }
 
