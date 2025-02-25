@@ -1,5 +1,5 @@
 const clientId = "gkabbyd9027f5oxp8uboijlsuucfqj";
-const redirectUri = "http://localhost:3000";
+const redirectUri = "https://jhanslik.github.io/MHWheel";
 const scopes = [
   "chat:read",
   "chat:edit",
