@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>MH Wilds - Roue des Armes</title>
+    <link rel="stylesheet" href="styles.css" />
+    <!-- Charger TMI.js depuis notre serveur -->
+    <script src="/tmi.js"></script>
+  </head>
+  <body>
+    <button id="loginButton" onclick="login()">Se connecter avec Twitch</button>
+
+    <div class="wheel-container" style="display: none">
+      <canvas id="wheel" width="500" height="500"></canvas>
+      <div id="selector"></div>
+    </div>
+    <div id="result"></div>
+
+    <!-- Nos scripts -->
+    <script src="wheel.js"></script>
+    <script src="auth.js"></script>
+    <script src="twitch.js"></script>
+  </body>
+</html>
