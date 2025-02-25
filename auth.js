@@ -1,5 +1,5 @@
 const clientId = "gkabbyd9027f5oxp8uboijlsuucfqj";
-const redirectUri = "https://6e55-88-178-41-17.ngrok-free.app";
+const redirectUri = "http://localhost:3000";
 const scopes = [
   "chat:read",
   "chat:edit",
@@ -9,17 +9,7 @@ const scopes = [
 
 // Vérifier le token au chargement
 window.addEventListener("load", () => {
-  const token = getAccessToken();
-  if (token) {
-    console.log("Token trouvé");
-    document.getElementById("loginButton").style.display = "none";
-    document.querySelector(".wheel-container").style.display = "block";
-    initializeTwitchClient(token);
-  } else {
-    console.log("Pas de token");
-    document.getElementById("loginButton").style.display = "block";
-    document.querySelector(".wheel-container").style.display = "none";
-  }
+  handleRedirect();
 });
 
 function login() {
@@ -34,14 +24,35 @@ function login() {
   window.location.href = authUrl;
 }
 
-// Récupérer le token depuis l'URL après redirection
-function getAccessToken() {
+function handleRedirect() {
   const hash = window.location.hash.substring(1);
-  const params = new URLSearchParams(hash);
-  return params.get("access_token");
+  if (hash) {
+    const params = new URLSearchParams(hash);
+    const accessToken = params.get("access_token");
+    if (accessToken) {
+      console.log("Token trouvé");
+      localStorage.setItem("twitchAccessToken", accessToken);
+      document.getElementById("loginButton").style.display = "none";
+      document.querySelector(".wheel-container").style.display = "block";
+      initializeTwitchClient(accessToken);
+      // Nettoyer l'URL
+      history.pushState("", document.title, window.location.pathname);
+    }
+  } else {
+    const token = localStorage.getItem("twitchAccessToken");
+    if (token) {
+      console.log("Token trouvé dans le localStorage");
+      document.getElementById("loginButton").style.display = "none";
+      document.querySelector(".wheel-container").style.display = "block";
+      initializeTwitchClient(token);
+    } else {
+      console.log("Pas de token");
+      document.getElementById("loginButton").style.display = "block";
+      document.querySelector(".wheel-container").style.display = "none";
+    }
+  }
 }
 
-// Fonction pour initialiser le client Twitch
 function initializeTwitchClient(token) {
   if (window.initTwitchChat) {
     window.initTwitchChat(token);

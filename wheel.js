@@ -38,10 +38,24 @@ class WeaponWheel {
     this.ctx = this.canvas.getContext("2d");
     this.currentRotation = 0;
     this.isSpinning = false;
+    this.wheelContainer = document.querySelector(".wheel-container");
+
+    // Créer l'élément de résultat s'il n'existe pas
+    if (!document.getElementById("result")) {
+      const resultDiv = document.createElement("div");
+      resultDiv.id = "result";
+      document.body.appendChild(resultDiv);
+    }
   }
 
   spin() {
     if (this.isSpinning) return;
+
+    // Cacher le résultat précédent
+    document.getElementById("result").style.display = "none";
+
+    // Afficher la roue
+    this.wheelContainer.classList.add("active");
 
     console.log("Début de la rotation");
     this.isSpinning = true;
@@ -64,6 +78,12 @@ class WeaponWheel {
       } else {
         this.isSpinning = false;
         this.announceResult();
+
+        // Cacher la roue après 5 secondes
+        setTimeout(() => {
+          this.wheelContainer.classList.remove("active");
+          document.getElementById("result").style.display = "none";
+        }, 5000);
       }
     };
 
@@ -127,12 +147,26 @@ class WeaponWheel {
   announceResult() {
     const selectedWeapon = this.getSelectedWeapon();
     console.log("Arme sélectionnée:", selectedWeapon);
-    document.getElementById(
-      "result"
-    ).textContent = `Arme sélectionnée : ${selectedWeapon}`;
+
+    // Afficher le résultat
+    const resultDiv = document.getElementById("result");
+    resultDiv.textContent = selectedWeapon;
+    resultDiv.style.display = "block";
 
     if (this.onSpinComplete) {
       this.onSpinComplete(selectedWeapon);
     }
   }
+
+  onSpinComplete = function (selectedWeapon) {
+    // Afficher le résultat en grand
+    const resultDiv = document.getElementById("result");
+    resultDiv.textContent = selectedWeapon;
+    resultDiv.style.display = "block";
+
+    // Cacher le résultat après 5 secondes
+    setTimeout(() => {
+      resultDiv.style.display = "none";
+    }, 5000);
+  };
 }
