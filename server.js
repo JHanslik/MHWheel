@@ -1,3 +1,4 @@
+require("dotenv").config();
 const express = require("express");
 const path = require("path");
 const http = require("http");
@@ -13,11 +14,6 @@ const wss = new WebSocket.Server({ server });
 
 // Servir les fichiers statiques
 app.use(express.static("./"));
-// Servir tmi.js depuis node_modules
-app.use(
-  "/tmi.js",
-  express.static(path.join(__dirname, "node_modules/tmi.js/dist/tmi.min.js"))
-);
 
 // Gérer les connexions WebSocket
 wss.on("connection", function connection(ws) {
